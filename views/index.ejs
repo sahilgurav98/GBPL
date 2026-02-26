@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GBPL - Home (Blogs)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style> .card-img-top { height: 200px; object-fit: cover; } </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">🏏 GBPL</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link active" href="/">News & Blogs</a>
+                    <a class="nav-link" href="/matches">Matches</a>
+                    <a class="nav-link" href="/stats">Player Stats</a>
+                </div>
+                <div class="ms-auto mt-2 mt-lg-0 d-flex gap-2">
+                    <% if(user) { %>
+                        <% if(isAdmin) { %> <a href="/admin" class="btn btn-warning btn-sm">Admin Panel</a> <% } %>
+                        <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+                    <% } else { %>
+                        <a href="/login" class="btn btn-outline-light btn-sm">Login</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h3 class="mb-4 border-bottom pb-2">📰 Latest News</h3>
+        <div class="row mb-5">
+            <% if(blogs.length === 0) { %> <p class="text-muted">No blogs yet.</p> <% } %>
+            <% blogs.forEach(blog => { %>
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <% if(blog.imageUrl) { %>
+                            <img src="<%= blog.imageUrl %>" class="card-img-top" alt="Blog Image">
+                        <% } %>
+                        <div class="card-body">
+                            <h5 class="card-title"><%= blog.title %></h5>
+                            <p class="card-text"><%= blog.description %></p>
+                            <small class="text-muted"><%= new Date(blog.date).toDateString() %></small>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
