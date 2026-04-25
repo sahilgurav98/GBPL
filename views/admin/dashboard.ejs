@@ -1,135 +1,194 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GBPL Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <nav class="navbar navbar-dark bg-danger mb-4 shadow-sm">
-        <div class="container d-flex justify-content-between align-items-center">
-            <span class="navbar-brand mb-0 h1">🛠️ Admin Panel</span>
-            <div class="d-flex gap-2">
-                <a href="/" class="btn btn-light btn-sm">View Site</a>
-                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
-            </div>
-        </div>
-    </nav>
+﻿<%- include('../partials/head', { pageTitle: `${t.siteName} | ${t.navAdmin}`, adminStyle: true }) %>
 
+<section class="admin-shell">
     <div class="container">
-        <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-dark text-white">Add Blog Post</div>
-            <div class="card-body">
-                <form action="/admin/blog/add" method="POST" enctype="multipart/form-data" class="row g-2">
-                    <div class="col-12 col-md-4"><input type="text" name="title" class="form-control" placeholder="Title" required></div>
-                    <div class="col-12 col-md-4"><input type="file" name="imageFile" class="form-control" accept="image/*"></div>
-                    <div class="col-12 col-md-4"><input type="text" name="description" class="form-control" placeholder="Description (Eng/Mar)" required></div>
-                    <div class="col-12"><button class="btn btn-success w-100 mt-2">Post Blog</button></div>
-                </form>
-            </div>
-        </div>
-
-        <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-dark text-white">Add Match Result</div>
-            <div class="card-body">
-                <form action="/admin/match/add" method="POST" class="row g-2">
-                    <div class="col-6 col-md-3"><input type="text" name="season" class="form-control" placeholder="Season (GBPL 24)"></div>
-                    <div class="col-12 col-md-3"><input type="text" name="result" class="form-control" placeholder="Winner / Result"></div>
-                    <div class="col-6 col-md-3"><input type="text" name="teamA" class="form-control" placeholder="Team A"></div>
-                    <div class="col-6 col-md-3"><input type="text" name="scoreA" class="form-control" placeholder="Score A (e.g. 120/4)"></div>
-                    <div class="col-6 col-md-3"><input type="text" name="teamB" class="form-control" placeholder="Team B"></div>
-                    <div class="col-6 col-md-3"><input type="text" name="scoreB" class="form-control" placeholder="Score B (e.g. 118/9)"></div>
-                    <div class="col-12"><textarea name="description" class="form-control" placeholder="Match Details / Commentary" rows="2"></textarea></div>
-                    <div class="col-12"><button class="btn btn-primary w-100 mt-2">Save Match</button></div>
-                </form>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12 col-md-4">
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-dark text-white">Add New Player</div>
-                    <div class="card-body">
-                        <form action="/admin/player/add" method="POST">
-                            <input type="text" name="name" class="form-control mb-2" placeholder="Player Name" required>
-                            <div class="row g-2 mb-2">
-                                <div class="col-4"><input type="number" name="matchesPlayed" class="form-control" placeholder="M" value="0"></div>
-                                <div class="col-4"><input type="number" name="runs" class="form-control" placeholder="R" value="0"></div>
-                                <div class="col-4"><input type="number" name="wickets" class="form-control" placeholder="W" value="0"></div>
-                            </div>
-                            <button class="btn btn-success w-100">Add Player</button>
-                        </form>
-                    </div>
+        <div class="admin-hero">
+            <div class="admin-hero-inner d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                <div>
+                    <span class="section-kicker"><%= t.navAdmin %></span>
+                    <h1 class="h2 mb-2"><%= t.adminTitle %></h1>
+                    <p class="mb-0 text-white-50"><%= t.adminSubtitle %></p>
                 </div>
-            </div>
-
-            <div class="col-12 col-md-8">
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-dark text-white">Update Existing Players</div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                            <table class="table table-sm table-striped mb-0 text-center align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class="text-start px-2">Name</th>
-                                        <th>M</th><th>R</th><th>W</th><th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% players.forEach(player => { %>
-                                        <tr>
-                                            <td class="text-start px-2 text-nowrap"><%= player.name %></td>
-                                            <td><input type="number" form="update-<%= player._id %>" name="matchesPlayed" value="<%= player.matchesPlayed %>" class="form-control form-control-sm px-1 text-center" style="min-width: 45px;"></td>
-                                            <td><input type="number" form="update-<%= player._id %>" name="runs" value="<%= player.runs %>" class="form-control form-control-sm px-1 text-center" style="min-width: 50px;"></td>
-                                            <td><input type="number" form="update-<%= player._id %>" name="wickets" value="<%= player.wickets %>" class="form-control form-control-sm px-1 text-center" style="min-width: 45px;"></td>
-                                            <td class="text-nowrap">
-                                                <form id="update-<%= player._id %>" action="/admin/player/update/<%= player._id %>" method="POST" class="d-inline">
-                                                    <button class="btn btn-primary btn-sm">💾</button>
-                                                </form>
-                                                <form id="delete-<%= player._id %>" action="/admin/player/delete/<%= player._id %>" method="POST" class="d-inline">
-                                                    <button class="btn btn-danger btn-sm">🗑️</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    <% }) %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="admin-actions">
+                    <a href="/" class="btn btn-light rounded-pill px-3"><%= t.adminViewSite %></a>
+                    <a href="/logout" class="btn btn-outline-light rounded-pill px-3"><%= t.navLogout %></a>
                 </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-12 col-md-6 mb-3">
-                <h5>Recent Blogs (Delete)</h5>
-                <ul class="list-group shadow-sm">
+        <div class="admin-grid">
+            <div class="admin-card">
+                <h3 class="h4 mb-3"><%= t.addBlog %></h3>
+                <p class="admin-note"><%= t.imageHelp %></p>
+                <form action="/admin/blog/add" method="POST" enctype="multipart/form-data" class="row g-3 mt-1">
+                    <div class="col-12">
+                        <label class="form-label"><%= t.titleLabel %></label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label"><%= t.descriptionLabel %></label>
+                        <textarea name="description" rows="3" class="form-control" required></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><%= t.imageUpload %></label>
+                        <input type="file" name="imageFile" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><%= t.imageUrl %></label>
+                        <input type="url" name="imageUrl" class="form-control" placeholder="https://...">
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-warning rounded-pill px-4 w-100"><%= t.postBlog %></button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="admin-card">
+                <h3 class="h4 mb-3"><%= t.addMatch %></h3>
+                <form action="/admin/match/add" method="POST" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><%= t.chooseSeason %></label>
+                        <input type="text" name="season" class="form-control" placeholder="GBPL 2026">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><%= t.venue %></label>
+                        <input type="text" name="venue" class="form-control" placeholder="Ground / Venue">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><%= t.teamA %></label>
+                        <input type="text" name="teamA" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><%= t.teamB %></label>
+                        <input type="text" name="teamB" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><%= t.scoreA %></label>
+                        <input type="text" name="scoreA" class="form-control" placeholder="145/6 (20)">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><%= t.scoreB %></label>
+                        <input type="text" name="scoreB" class="form-control" placeholder="142/9 (20)">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label"><%= t.resultLabel %></label>
+                        <input type="text" name="result" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label"><%= t.detailsLabel %></label>
+                        <textarea name="description" rows="3" class="form-control"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-primary rounded-pill px-4 w-100"><%= t.saveMatch %></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+            <div class="admin-card">
+                <h3 class="h4 mb-3"><%= t.addPlayer %></h3>
+                <form action="/admin/player/add" method="POST" class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label"><%= t.playerName %></label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><%= t.matchesPlayed %></label>
+                        <input type="number" name="matchesPlayed" class="form-control" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><%= t.runs %></label>
+                        <input type="number" name="runs" class="form-control" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><%= t.wickets %></label>
+                        <input type="number" name="wickets" class="form-control" value="0">
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-success rounded-pill px-4 w-100"><%= t.savePlayer %></button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="admin-card p-0">
+                <div class="p-4 pb-0">
+                    <h3 class="h4 mb-3"><%= t.updatePlayers %></h3>
+                </div>
+                <div class="table-responsive px-3 pb-3">
+                    <table class="table table-hover align-middle mb-0 admin-player-table">
+                        <thead>
+                            <tr>
+                                <th><%= t.playerName %></th>
+                                <th><%= t.matchesPlayed %></th>
+                                <th><%= t.runs %></th>
+                                <th><%= t.wickets %></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% players.forEach(player => { %>
+                                <tr>
+                                    <td data-label="<%= t.playerName %>"><strong><%= player.name %></strong></td>
+                                    <td data-label="<%= t.matchesPlayed %>"><input type="number" form="update-<%= player._id %>" name="matchesPlayed" value="<%= player.matchesPlayed %>" class="form-control form-control-sm"></td>
+                                    <td data-label="<%= t.runs %>"><input type="number" form="update-<%= player._id %>" name="runs" value="<%= player.runs %>" class="form-control form-control-sm"></td>
+                                    <td data-label="<%= t.wickets %>"><input type="number" form="update-<%= player._id %>" name="wickets" value="<%= player.wickets %>" class="form-control form-control-sm"></td>
+                                    <td class="text-end admin-player-actions" data-label="Actions">
+                                        <form id="update-<%= player._id %>" action="/admin/player/update/<%= player._id %>" method="POST" class="d-inline">
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3"><%= t.saveChanges %></button>
+                                        </form>
+                                        <form action="/admin/player/delete/<%= player._id %>" method="POST" class="d-inline">
+                                            <button class="btn btn-outline-danger btn-sm rounded-pill px-3"><%= t.deleteLabel %></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+            <div class="admin-table-shell">
+                <div class="p-4 pb-2">
+                    <h4 class="mb-0"><%= t.recentBlogs %></h4>
+                </div>
+                <ul class="admin-list">
+                    <% if (!blogs.length) { %>
+                        <li><span><%= t.blogEmptyAdmin %></span></li>
+                    <% } %>
                     <% blogs.forEach(blog => { %>
-                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <span class="text-truncate" style="max-width: 80%;"><%= blog.title %></span>
-                            <form action="/admin/blog/delete/<%= blog._id %>" method="POST" class="m-0">
-                                <button class="btn btn-danger btn-sm">X</button>
+                        <li>
+                            <span><%= blog.title %></span>
+                            <form action="/admin/blog/delete/<%= blog._id %>" method="POST">
+                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3"><%= t.deleteLabel %></button>
                             </form>
                         </li>
                     <% }) %>
                 </ul>
             </div>
-            <div class="col-12 col-md-6 mb-5">
-                <h5>Recent Matches (Delete)</h5>
-                <ul class="list-group shadow-sm">
+            <div class="admin-table-shell">
+                <div class="p-4 pb-2">
+                    <h4 class="mb-0"><%= t.recentMatchesAdmin %></h4>
+                </div>
+                <ul class="admin-list">
+                    <% if (!matches.length) { %>
+                        <li><span><%= t.matchEmptyAdmin %></span></li>
+                    <% } %>
                     <% matches.forEach(match => { %>
-                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <span class="text-truncate" style="max-width: 80%;"><%= match.teamA %> vs <%= match.teamB %></span>
-                            <form action="/admin/match/delete/<%= match._id %>" method="POST" class="m-0">
-                                <button class="btn btn-danger btn-sm">X</button>
+                        <li>
+                            <span><%= match.teamA %> vs <%= match.teamB %></span>
+                            <form action="/admin/match/delete/<%= match._id %>" method="POST">
+                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3"><%= t.deleteLabel %></button>
                             </form>
                         </li>
                     <% }) %>
                 </ul>
             </div>
         </div>
-
     </div>
-</body>
-</html>
+</section>
+
+<%- include('../partials/footer') %>
+

@@ -1,0 +1,32 @@
+﻿<nav class="navbar navbar-expand-lg navbar-dark topbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand brand-mark" href="/">
+            <span class="brand-badge">GBPL</span>
+            <span class="brand-copy">
+                <strong><%= t.siteName %></strong>
+                <small><%= t.siteTagline %></small>
+            </span>
+        </a>
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-nav mx-auto nav-pills-shell">
+                <a class="nav-link <%= currentPath === '/' ? 'active' : '' %>" href="/"><%= t.navHome %></a>
+                <a class="nav-link <%= currentPath === '/matches' ? 'active' : '' %>" href="/matches"><%= t.navMatches %></a>
+                <a class="nav-link <%= currentPath === '/stats' ? 'active' : '' %>" href="/stats"><%= t.navStats %></a>
+            </div>
+            <div class="topbar-actions">
+                <% if (user) { %>
+                    <% if (isAdmin) { %>
+                        <a href="/admin" class="btn btn-warning btn-sm rounded-pill px-3"><%= t.navAdmin %></a>
+                    <% } %>
+                    <a href="/logout" class="btn btn-outline-light btn-sm rounded-pill px-3"><%= t.navLogout %></a>
+                <% } else { %>
+                    <a href="/login" class="btn btn-outline-light btn-sm rounded-pill px-3"><%= t.navLogin %></a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</nav>
+

@@ -9,40 +9,53 @@ const { isAuthenticated, isAdmin } = require('../middleware/auth');
 
 router.use(isAuthenticated, isAdmin);
 
-// --- MULTER SETUP FOR IMAGE UPLOADS ---
 const storage = multer.diskStorage({
-    destination: './public/uploads/', // Where images will be saved
+    destination: './public/uploads/',
     filename: function(req, file, cb) {
-        // Renames file to avoid duplicates: imageFile-168432345.jpg
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
     }
 });
 
-const upload = multer({ 
-    storage: storage,
-    limits: { fileSize: 5000000 } // Limit file size to 5MB
-}).single('imageFile'); // 'imageFile' will be the name of our input field
+const upload = multer({
+    storage,
+    limits: { fileSize: 3 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype && file.mimetype.startsWith('image/')) {
+            cb(null, true);
+            return;
+        }
 
-// --- DASHBOARD ROUTE ---
+        cb(new Error('Only image files are allowed.'));
+    }
+}).single('imageFile');
+
 router.get('/', async (req, res) => {
-    const matches = await Match.find().sort({date: -1});
-    const players = await Player.find().sort({runs: -1});
-    const blogs = await Blog.find().sort({date: -1});
-    res.render('admin/dashboard', { matches, players, blogs });
+    const [matches, players, blogs] = await Promise.all([
+        Match.find().sort({ date: -1 }),
+        Player.find().sort({ runs: -1 }),
+        Blog.find().sort({ date: -1 })
+    ]);
+
+    res.render('admin/dashboard', {
+        matches,
+        players,
+        blogs,
+        currentPath: '/admin'
+    });
 });
 
-// --- BLOG ACTIONS (Updated for Image Upload) ---
 router.post('/blog/add', (req, res) => {
-    upload(req, res, async (err) => {
+    upload(req, res, async err => {
         if (err) {
-            return res.send("Error uploading file.");
+            res.status(400).send(err.message || 'Error uploading file.');
+            return;
         }
-        
-        // Construct the image URL path if a file was uploaded
+
+        const externalUrl = (req.body.imageUrl || '').trim();
         const newBlog = {
             title: req.body.title,
             description: req.body.description,
-            imageUrl: req.file ? '/uploads/' + req.file.filename : '' // Save the path to DB
+            imageUrl: externalUrl || (req.file ? `/uploads/${req.file.filename}` : '')
         };
 
         await Blog.create(newBlog);
@@ -55,25 +68,36 @@ router.post('/blog/delete/:id', async (req, res) => {
     res.redirect('/admin');
 });
 
-// --- MATCH ACTIONS (Remains exactly the same) ---
 router.post('/match/add', async (req, res) => {
-    await Match.create(req.body);
+    await Match.create({
+        season: req.body.season,
+        teamA: req.body.teamA,
+        teamB: req.body.teamB,
+        scoreA: req.body.scoreA,
+        scoreB: req.body.scoreB,
+        result: req.body.result,
+        description: req.body.description,
+        venue: req.body.venue
+    });
+
     res.redirect('/admin');
 });
+
 router.post('/match/delete/:id', async (req, res) => {
     await Match.findByIdAndDelete(req.params.id);
     res.redirect('/admin');
 });
 
-// --- PLAYER ACTIONS (Remains exactly the same) ---
 router.post('/player/add', async (req, res) => {
     await Player.create(req.body);
     res.redirect('/admin');
 });
+
 router.post('/player/update/:id', async (req, res) => {
     await Player.findByIdAndUpdate(req.params.id, req.body);
     res.redirect('/admin');
 });
+
 router.post('/player/delete/:id', async (req, res) => {
     await Player.findByIdAndDelete(req.params.id);
     res.redirect('/admin');

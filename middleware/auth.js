@@ -5,7 +5,7 @@ function isAuthenticated(req, res, next) {
 
 function isAdmin(req, res, next) {
     if (req.session.isAdmin) return next();
-    res.status(403).send("Access Denied: Admin only.");
+    res.status(403).send('Admin access only.');
 }
 
 module.exports = { isAuthenticated, isAdmin };
