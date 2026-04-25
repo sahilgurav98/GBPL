@@ -90,7 +90,14 @@ router.get('/signup', (req, res) => res.render('signup', { currentPath: '/signup
 
 router.post('/signup', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const username = (req.body.username || '').trim();
+        const password = req.body.password || '';
+
+        if (!username || !password) {
+            res.status(400).send("Username and password are required. <a href='/signup'>Try again</a>");
+            return;
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const isFirstUser = (await User.countDocuments()) === 0;
         await User.create({ username, password: hashedPassword, isAdmin: isFirstUser });
@@ -101,21 +108,48 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username });
+    try {
+        const username = (req.body.username || '').trim();
+        const password = req.body.password || '';
 
-    if (user && await bcrypt.compare(password, user.password)) {
-        req.session.userId = user._id;
-        req.session.isAdmin = user.isAdmin;
-        res.redirect(user.isAdmin ? '/admin' : '/');
-        return;
+        if (!username || !password) {
+            res.status(400).send("Username and password are required. <a href='/login'>Try again</a>");
+            return;
+        }
+
+        const user = await User.findOne({ username });
+
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            res.status(401).send("Invalid login. <a href='/login'>Try again</a>");
+            return;
+        }
+
+        req.session.regenerate(err => {
+            if (err) {
+                res.status(500).send('Unable to start session. Please try again.');
+                return;
+            }
+
+            req.session.userId = user._id.toString();
+            req.session.isAdmin = user.isAdmin;
+
+            req.session.save(saveErr => {
+                if (saveErr) {
+                    res.status(500).send('Unable to save session. Please try again.');
+                    return;
+                }
+
+                res.redirect(user.isAdmin ? '/admin' : '/');
+            });
+        });
+    } catch (err) {
+        res.status(500).send('Error logging in. Please try again.');
     }
-
-    res.status(401).send("Invalid login. <a href='/login'>Try again</a>");
 });
 
 router.get('/logout', (req, res) => {
     req.session.destroy(() => {
+        res.clearCookie('connect.sid');
         res.redirect('/');
     });
 });
